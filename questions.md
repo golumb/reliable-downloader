@@ -13,6 +13,8 @@ I tested both partial and regular downloads.
 The web server serving https://installerstaging.accurx.com/chain/3.94.56148.0/accuRx.Installer.Local.msi supports partial download, so in order to test regular (non-partial) download, I hardcoded flag bUsePartialDownloader = false.
 Because, it takes about 5 seconds to download, I did not have to use netlimiter to test cancellation: I had enought time to cancel it before it finishes.
 
+Come to think about it - I do need to test internet failure, for which I might need netlimiter (15 quid). Maybe, tomorrow.
+
 ## How long did you spend on the exercise?
 
 I downloaded the code late on Wednesday, but I did not have time to look at the code until Thursday evening, and then I also read the excercise description.
@@ -20,6 +22,8 @@ After that I, sort of involuntarily, thought about the problem, probably, for ab
 On Saturday, today that is, I worked on this for about 5 hours (6 hours with a break). 
 
 ## What would you add if you had more time and how?
+
+I need to test internet failure.
 
 I did not do MD5 checking - this should simple, because I can see the header:
     Content-MD5: L23uJOgrCAbOQpiduHioTg==
