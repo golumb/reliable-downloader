@@ -9,27 +9,29 @@ namespace ReliableDownloader
 {
     public class FileDownloader : IFileDownloader, IDisposable
     {
-        CancellationTokenSource cts;
         WebSystemCalls web;
+        CancellationTokenSource cts;
 
         public FileDownloader()
         {
-            cts = new CancellationTokenSource();
             web = new WebSystemCalls();
+            cts = new CancellationTokenSource();
         }
 
         public async Task<bool> DownloadFileAsync(string contentFileUrl, string localFilePath, Action<FileProgress> onProgressChanged)
         {
-            var cancellationToken = cts.Token;
             var bUsePartialDownloader = false;
             Int64? contentLength = -1;
+
+            var cancellationToken = cts.Token;
+            cancellationToken.Register(() => Console.WriteLine("\n\nDownload cancelled!\n"));
 
             using var fileStream = new FileStream(localFilePath, FileMode.OpenOrCreate);
             using var headersResult = await web.GetHeadersAsync(contentFileUrl, cancellationToken);
 
             if (headersResult.StatusCode != System.Net.HttpStatusCode.OK)
             {
-                Console.WriteLine("Error accessing URL {0}\nHttp status code:{1}\nTime:{2}\nPlease copy this message and report it to the technical staff", contentFileUrl,headersResult.StatusCode,DateTime.UtcNow);
+                Console.WriteLine("Error accessing URL {0}\nHttp status code:{1}\nTime:{2}\nPlease copy this message and report it to the technical staff", contentFileUrl, headersResult.StatusCode, DateTime.UtcNow);
                 return false;
             }
             else
@@ -64,7 +66,7 @@ namespace ReliableDownloader
                     for (int i = 0; i <= nChunks; ++i)
                     {
                         start = chunkSize * i;
-                        if (i<nChunks)
+                        if (i < nChunks)
                             end = chunkSize * (i + 1) - 1;
                         else
                             end = _contentLength;
@@ -84,7 +86,7 @@ namespace ReliableDownloader
                         var dtNow = DateTime.Now;
                         var elapsed = dtNow.Ticks - dtStart.Ticks;
                         var estimateRemaining = elapsed * ((long)contentLength - end) / (long)contentLength;
-                        onProgressChanged(new FileProgress(contentLength, end, ( (double)100 * end / contentLength), new TimeSpan(estimateRemaining)));
+                        onProgressChanged(new FileProgress(contentLength, end, ((double)100 * end / contentLength), new TimeSpan(estimateRemaining)));
                     }
 
                 }
