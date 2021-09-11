@@ -1,7 +1,5 @@
 ﻿using System;
-using System.Threading;
 using System.Threading.Tasks;
-using ReliableDownloader;
 
 namespace ReliableDownloader
 {
@@ -14,13 +12,16 @@ namespace ReliableDownloader
             var exampleFilePath = "C:/temp/myfirstdownload.msi";
             using var fileDownloader = new FileDownloader();
 
-            
+
 
             Task download = Task.Run(() => fileDownloader.DownloadFileAsync(
-                                            exampleUrl, 
-                                            exampleFilePath, 
-                                            progress => { Console.Write($"\rPercent progress is {string.Format("{0:N0}%", progress.ProgressPercent)}"); }
-                                            ));
+                                            exampleUrl,
+                                            exampleFilePath,
+                                            progress => {
+                                                Console.Write("\rPercent progress is {0}. Time remaining: {1}",
+                                                    string.Format("{0:N0}%", progress.ProgressPercent),
+                                                    string.Format("{0:N1} seconds", progress.EstimatedRemaining?.TotalSeconds));
+                                            }));
             // monitor thread:
             await Task.Run(async () =>
                         {
