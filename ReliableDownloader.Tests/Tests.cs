@@ -14,6 +14,7 @@ namespace ReliableDownloader.Tests
         public void Test1()
         {
             var fileDownloader = new FileDownloader();
+            fileDownloader.Dispose();
             Assert.True(true);
         }
     }
