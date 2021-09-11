@@ -2,17 +2,30 @@
 
 ## How did you approach solving the problem?
 
-
+How to solve the main problem of the excercise was clearly explained in README.md. 
+So the actual problem was to find out how each particular step needed to be implemented. 
+For example, partial download was new to me, so I did not expect http status code 206, but rather 200, i.e., it failed first time.
+Or, I spend some time, wondering why .AcceptRanges is a collection. In retrospect, I shouln't have worried about that and just accepted the fact.
 
 ## How did you verify your solution works correctly?
 
-
+I tested both partial and regular downloads. 
+The web server serving https://installerstaging.accurx.com/chain/3.94.56148.0/accuRx.Installer.Local.msi supports partial download, so in order to test regular (non-partial) download, I hardcoded flag bUsePartialDownloader = false.
+Because, it takes about 5 seconds to download, I did not have to use netlimiter to test cancellation: I had enought time to cancel it before it finishes.
 
 ## How long did you spend on the exercise?
 
-
+I downloaded the code late on Wednesday, but I did not have time to look at the code until Thursday evening, and then I also read the excercise description.
+After that I, sort of involuntarily, thought about the problem, probably, for about 30 minutes on Thursday and Friday each, but did not do any coding.
+On Saturday, today that is, I worked on this for about 5 hours (6 hours with a break). 
 
 ## What would you add if you had more time and how?
 
+I did not do MD5 checking - this should simple, because I can see the header:
+    Content-MD5: L23uJOgrCAbOQpiduHioTg==
 
+I did not add unit testing, which I hope to do tomorrow, regardless of whether it'll count or not
 
+I would add app.config and put url, filename, and potentially a few other paramters in there.
+
+I would also refactor the cancellation.
