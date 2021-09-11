@@ -59,6 +59,7 @@ namespace ReliableDownloader
                     var end = (long)contentLength;
 
                     onProgressChanged(new FileProgress(contentLength, 0, null, new TimeSpan(0, 1, 0)));
+
                     for (int i = 0; i <= nChunks; ++i)
                     {
                         start = chunkSize * i;
@@ -79,6 +80,9 @@ namespace ReliableDownloader
                 else
                 {
                     Console.WriteLine("Doing regular download");
+                    using var getResult = await web.DownloadContent(contentFileUrl, cancellationToken); 
+                    fileStream.Position = 0;
+                    await getResult.Content.CopyToAsync(fileStream);
                 }
             }
 
