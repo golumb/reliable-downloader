@@ -50,15 +50,16 @@ namespace ReliableDownloader
 
                 if (bUsePartialDownloader)
                 {
-                    Console.WriteLine("Doing partial download. Content-Length:{0}", contentLength);
+                    var _contentLength = (long)contentLength;
+                    Console.WriteLine("Doing partial download. Content-Length:{0}", _contentLength);
                     var nChunks = 100;  // configurable ?
-                    var chunkSize = (long)contentLength / nChunks;
-                    var remainder = (long)contentLength % nChunks;
+                    var chunkSize = _contentLength / nChunks;
+                    var remainder = _contentLength % nChunks;
                     var dtStart = DateTime.Now;
                     var start = 0L;
                     var end = (long)contentLength;
 
-                    onProgressChanged(new FileProgress(contentLength, 0, null, new TimeSpan(0, 1, 0)));
+                    onProgressChanged(new FileProgress(_contentLength, 0, null, new TimeSpan(0, 1, 0)));
 
                     for (int i = 0; i <= nChunks; ++i)
                     {
@@ -66,10 +67,20 @@ namespace ReliableDownloader
                         if (i<nChunks)
                             end = chunkSize * (i + 1) - 1;
                         else
-                            end = start + remainder;
+                            end = _contentLength;
                         using var getResult = await web.DownloadPartialContent(contentFileUrl, start, end, cancellationToken);
                         fileStream.Position = start;
-                        await getResult.Content.CopyToAsync(fileStream);
+                        var successForThisChunk = false;
+                        while (!successForThisChunk)
+                        {
+                            await getResult.Content.CopyToAsync(fileStream);
+                            successForThisChunk = getResult.StatusCode == System.Net.HttpStatusCode.PartialContent;
+                            if (!successForThisChunk)
+                            {
+                                await Task.Delay(1000); // configurable ?
+                                Console.WriteLine("Retrying at {0}", start);
+                            }
+                        }
                         var dtNow = DateTime.Now;
                         var elapsed = dtNow.Ticks - dtStart.Ticks;
                         var estimateRemaining = elapsed * ((long)contentLength - end) / (long)contentLength;
@@ -80,9 +91,17 @@ namespace ReliableDownloader
                 else
                 {
                     Console.WriteLine("Doing regular download");
-                    using var getResult = await web.DownloadContent(contentFileUrl, cancellationToken); 
-                    fileStream.Position = 0;
-                    await getResult.Content.CopyToAsync(fileStream);
+                    var success = false;
+                    while (!success)
+                    {
+                        using var getResult = await web.DownloadContent(contentFileUrl, cancellationToken);
+                        success = getResult.StatusCode == System.Net.HttpStatusCode.OK;
+                        if (success)
+                        {
+                            fileStream.Position = 0;
+                            await getResult.Content.CopyToAsync(fileStream);
+                        }
+                    }
                 }
             }
 
