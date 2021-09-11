@@ -12,6 +12,7 @@ Or, I spend some time, wondering why .AcceptRanges is a collection. In retrospec
 I tested both partial and regular downloads. 
 The web server serving https://installerstaging.accurx.com/chain/3.94.56148.0/accuRx.Installer.Local.msi supports partial download, so in order to test regular (non-partial) download, I hardcoded flag bUsePartialDownloader = false.
 Because, it takes about 5 seconds to download, I did not have to use netlimiter to test cancellation: I had enought time to cancel it before it finishes.
+I knew that the downloaded files were intact, because i could run the installer (I did not actually install the app, but cancel), so i postponed doing MD5 check.
 
 Come to think about it - I do need to test internet failure, for which I might need netlimiter (15 quid). Maybe, tomorrow.
 
