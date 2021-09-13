@@ -59,28 +59,52 @@ namespace ReliableDownloader
                     var dtStart = DateTime.Now;
                     var start = 0L;
                     var end = (long)contentLength;
+                    var bWebException = false;
+                    byte[] chunkBytes;
 
                     onProgressChanged(new FileProgress(_contentLength, 0, null, new TimeSpan(0, 1, 0)));
 
                     for (int i = 0; i <= nChunks; ++i)
                     {
+                        chunkBytes = new byte[] { };
                         start = chunkSize * i;
                         if (i < nChunks)
                             end = chunkSize * (i + 1) - 1;
                         else
                             end = _contentLength;
-                        using var getResult = await web.DownloadPartialContent(contentFileUrl, start, end, cancellationToken);
-                        fileStream.Position = start;
                         var successForThisChunk = false;
                         while (!successForThisChunk)
                         {
-                            await getResult.Content.CopyToAsync(fileStream);
-                            successForThisChunk = getResult.StatusCode == System.Net.HttpStatusCode.PartialContent;
-                            if (!successForThisChunk)
+                                //using var getResult = await web.DownloadPartialContent(contentFileUrl, start, end, cancellationToken);
+                            try
+                            {
+                                bWebException = false;
+                                chunkBytes = await web.DownloadPartialContentWebClient(contentFileUrl, start, end, cancellationToken);
+                            }
+                            catch(System.Net.WebException wex)
+                            {
+                                bWebException = true;
+                                Console.WriteLine($"DownloadPartialContentWebClient: {wex}");
+                            }
+                            fileStream.Position = start;
+                        
+                            //await getResult.Content.CopyToAsync(fileStream);
+                            
+                            //successForThisChunk = getResult.StatusCode == System.Net.HttpStatusCode.PartialContent;
+                            successForThisChunk = !bWebException && chunkBytes.Length>0;
+
+                            if (successForThisChunk)
+                            {
+                                fileStream.Position = start;
+                                await fileStream.WriteAsync(chunkBytes, cancellationToken);
+                                successForThisChunk = true;
+                            }
+                            else 
                             {
                                 await Task.Delay(1000); // configurable ?
                                 Console.WriteLine("Retrying at {0}", start);
                             }
+
                         }
                         var dtNow = DateTime.Now;
                         var elapsed = dtNow.Ticks - dtStart.Ticks;
