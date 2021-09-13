@@ -34,3 +34,13 @@ I did not add unit testing, which I hope to do tomorrow, regardless of whether i
 I would add app.config and put url, filename, and potentially a few other paramters in there.
 
 I would also refactor the cancellation.
+
+
+## Update on 13 Sept, 9:38am
+
+Yesterday evening I disabled my wifi adapter in order to test internet cuts, and discovered, that httpclient gets into a deadlock.
+I could not fix that using client.Timeout or cancelTokenSource.CancelAfter(...). I spent two sad hours trying things with it, but no luck.
+
+This morning, I tried WebClient instead, and that worked. It's now tolerating me disabling wifi adapter.
+
+All the other mentioned items are outstanding
