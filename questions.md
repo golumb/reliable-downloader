@@ -40,6 +40,9 @@ I would also refactor the cancellation.
 
 Yesterday evening I disabled my wifi adapter in order to test internet cuts, and discovered, that httpclient gets into a deadlock.
 I could not fix that using client.Timeout or cancelTokenSource.CancelAfter(...). I spent two sad hours trying things with it, but no luck.
+The only positive outcome of this, was that I saw that my 
+  while (!successForThisChunk) 
+statement should have been a few lines higher.
 
 This morning, I tried WebClient instead, and that worked. It's now tolerating me disabling wifi adapter.
 
