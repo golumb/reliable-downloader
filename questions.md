@@ -47,3 +47,8 @@ statement should have been a few lines higher.
 This morning, I tried WebClient instead, and that worked. It's now tolerating me disabling wifi adapter.
 
 All the other mentioned items are outstanding
+
+## Update on 14 Sept, 11:00pm
+
+Added MD5 check; Fixed remaining time estimate
+Difficult to estimate time: spent a couple of hours, but was distracted and went away multiple times. 
