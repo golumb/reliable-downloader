@@ -21,6 +21,7 @@ namespace ReliableDownloader
         {
             var bUsePartialDownloader = false;
             Int64? contentLength = -1;
+            byte[] headerHash = null;
 
             var cancellationToken = cts.Token;
             cancellationToken.Register(() => Console.WriteLine("\n\nDownload cancelled!\n"));
@@ -45,6 +46,8 @@ namespace ReliableDownloader
                 }
 
                 contentLength = headersResult.Content.Headers.ContentLength;
+                headerHash = headersResult.Content.Headers.ContentMD5;
+
 
                 // Maybe, if content-lenths is unknown, it should be bUsePartialDownloader = false; 
                 // TODO: check if we can do partial download without knowing content length
@@ -52,7 +55,7 @@ namespace ReliableDownloader
                 if (bUsePartialDownloader)
                 {
                     var _contentLength = (long)contentLength;
-                    Console.WriteLine("Doing partial download. Content-Length:{0}", _contentLength);
+                    Console.WriteLine("Doing partial download. Content-Length:{0}\n", _contentLength);
                     var nChunks = 100;  // configurable ?
                     var chunkSize = _contentLength / nChunks;
                     var remainder = _contentLength % nChunks;
@@ -75,7 +78,6 @@ namespace ReliableDownloader
                         var successForThisChunk = false;
                         while (!successForThisChunk)
                         {
-                                //using var getResult = await web.DownloadPartialContent(contentFileUrl, start, end, cancellationToken);
                             try
                             {
                                 bWebException = false;
@@ -87,10 +89,7 @@ namespace ReliableDownloader
                                 Console.WriteLine($"DownloadPartialContentWebClient: {wex}");
                             }
                             fileStream.Position = start;
-                        
-                            //await getResult.Content.CopyToAsync(fileStream);
-                            
-                            //successForThisChunk = getResult.StatusCode == System.Net.HttpStatusCode.PartialContent;
+
                             successForThisChunk = !bWebException && chunkBytes.Length>0;
 
                             if (successForThisChunk)
@@ -108,14 +107,14 @@ namespace ReliableDownloader
                         }
                         var dtNow = DateTime.Now;
                         var elapsed = dtNow.Ticks - dtStart.Ticks;
-                        var estimateRemaining = elapsed * ((long)contentLength - end) / (long)contentLength;
+                        var estimateRemaining = (start==0) ? 60L : elapsed * ((long)contentLength - start) / start;
                         onProgressChanged(new FileProgress(contentLength, end, ((double)100 * end / contentLength), new TimeSpan(estimateRemaining)));
                     }
 
                 }
                 else
                 {
-                    Console.WriteLine("Doing regular download");
+                    Console.WriteLine("Doing regular download\n");
                     var success = false;
                     while (!success)
                     {
@@ -129,6 +128,11 @@ namespace ReliableDownloader
                     }
                 }
             }
+
+            // added on 14 Sept 2021
+            fileStream.Close();
+            var integrity = IntegrityVerifier.CheckMD5(headerHash, localFilePath);
+            Console.WriteLine("\n\nFile integrity: : {0}", integrity);
 
             return true;
         }
